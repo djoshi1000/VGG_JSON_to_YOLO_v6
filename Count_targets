@@ -1,0 +1,21 @@
+import json
+from PIL import Image 
+import pandas as pd
+import os,glob
+patha=r'F:\Yolov6\Trail_part\Files'
+list1 =os.listdir(patha)
+total=0
+for fi in list1:
+    foldw= os.path.join(patha,fi)
+#     print(foldw)
+    file= glob.glob(foldw+'\*.txt')
+    # print(file)
+    full=0
+    for f in file:
+#         print(f)
+        with open(f, 'r') as fp:
+            num_lines = sum(1 for line in fp if line.rstrip())
+            full=full+num_lines
+    print('Total lines:', full,fi)  # 8
+    total= total+full
+print("In total there are ", total)
