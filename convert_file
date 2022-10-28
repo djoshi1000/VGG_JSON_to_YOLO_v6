@@ -1,76 +1,83 @@
-import os, glob
 import json
 from PIL import Image 
 import pandas as pd
-import os
-fold= r"F:/yolo5/Images_From_Videos/New_folder/"
-for i in range(23,25):
-    #print(i)
-    folder= fold+str(i)+"/"
-    print(folder)
-    file= glob.glob(folder+"*.json")
-    print(file[0])
-    #file = r"G:\Dashcam_Images\Selected_Videos\Jsons\YOLO\Images_use\Shashika_v2.json"
-    #file= r"F:\yolo5\Images\Annotated_REC_2022_05_04_16_56_03_F.json"
-    with open(file[0]) as f:
+import os,glob
+from os.path import exists
+patha=r'F:\Yolov6\Trail_part\Files' #F:\Yolov6\Trail_part\FilesF:\Yolov6\Trail_part\Files
+list1 =os.listdir(patha)
+for fi in list1:
+    foldw= os.path.join(patha,fi)
+    imglist= glob.glob(foldw+'\*.png')
+#     print(imglist)
+    file= (os.path.join(patha,fi,fi)+'.json')  
+    with open(file) as f:
         json_file = json.load(f)
         json_file = json_file['_via_img_metadata']
-        images = list(json_file.keys()) #[n.split('.png')[0]+'.png' for n in list(json_file.keys())]
+        images = list(json_file.keys())
+#         print(images[:])
+        
+#         print(images)#[n.split('.png')[0]+'.png' for n in list(json_file.keys())]
     for img in images[:]:
-        actual = img.split('.png')[0] + '.png'
-        actual = os.path.join(folder, actual)
-        img1 = Image.open(actual)
-        img_x, img_y = img1.size
         info = json_file[img]
+        actual1 = img.split('.png')[0] + '.png'
+        actual = os.path.join(patha,fi, actual1)
         temp_rectangles = info['regions']
-        xmin = []
-        xmax = []
-        ymin = []
-        ymax = []
-        c = []
-        width = []
-        height = []
-        for rec in temp_rectangles:
-            tmp_xmin = rec['shape_attributes']['x']
-            tmp_ymin = rec['shape_attributes']['y']
-            tmp_width = rec['shape_attributes']['width']
-            tmp_height = rec['shape_attributes']['height']
-            tmp_c = rec['region_attributes']['Class']
+#         print(actual)
+        do=  os.path.exists(actual)
+        if do==True:
+            img1 = Image.open(actual)
+            img_x, img_y = img1.size
+#             print(img_x)
+            if temp_rectangles!= []:
+                xmin = []
+                xmax = []
+                ymin = []
+                ymax = []
+                c = []
+                width = []
+                height = []
+                for rec in temp_rectangles:
+                    tmp_xmin = rec['shape_attributes']['x']
+                    tmp_ymin = rec['shape_attributes']['y']
+                    tmp_width = rec['shape_attributes']['width']
+                    tmp_height = rec['shape_attributes']['height']
+#                     print(tmp_width/img_x, tmp_height/img_x)
+                    tmp_c = rec['region_attributes']['class']
 
-            if tmp_c == 'l':
-                tmp_c = 0
-            elif tmp_c=='d':
-                tmp_c= 1
-            elif tmp_c=='p':
-                tmp_c= 2
-            elif tmp_c=='t':
-                tmp_c= 3
-            elif tmp_c=='tr':
-                tmp_c= 4
-            else :
-                print("serious error check annotation in VGG", tmp_c, img)
+                    if tmp_c == 'l':
+                        tmp_c = 0
+                    elif tmp_c=='p':
+                        tmp_c= 1
+                    elif tmp_c=='t':
+                        tmp_c= 2
+                    elif tmp_c=='tr':
+                        tmp_c= 3
+                    elif tmp_c=='d':
+                        tmp_c= 4
+                    else :
+                        print("serious error check annotation in VGG", actual)
 
-            #tmp_xmax = tmp_xmin + tmp_width
-            #tmp_ymax = tmp_ymin + tmp_height
+                    tmp_xmax = tmp_xmin + tmp_width
+                    tmp_ymax = tmp_ymin + tmp_height
 
-            tmp_xmin = tmp_xmin / img_x
-            tmp_xmax = tmp_xmax / img_x
-            tmp_ymin = tmp_ymin / img_y
-            tmp_ymax = tmp_ymax / img_y
+                    tmp_xmin = tmp_xmin / img_x
+                    tmp_xmax = tmp_ymin / img_y
+                    tmp_ymin = tmp_width/ img_x
+                    tmp_ymax = tmp_height/ img_y
 
-            xmin.append(tmp_xmin)
-            xmax.append(tmp_xmax)
-            ymin.append(tmp_ymin)
-            ymax.append(tmp_ymax)
-            c.append(tmp_c)
+                    xmin.append(tmp_xmin)
+                    xmax.append(tmp_xmax)
+                    ymin.append(tmp_ymin)
+                    ymax.append(tmp_ymax)
+                    c.append(tmp_c)
 
-        txtfile_dir = actual.replace('.png','.txt')
+                txtfile_dir = actual.replace('.png','.txt')
 
-        tmp_df = pd.DataFrame()
-        tmp_df['c'] = c
-        tmp_df['xmin'] = xmin
-        tmp_df['xmax'] = xmax
-        tmp_df['ymin'] = ymin
-        tmp_df['ymax'] = ymax
+                tmp_df = pd.DataFrame()
+                tmp_df['c'] = c
+                tmp_df['xmin'] = xmin
+                tmp_df['xmax'] = xmax
+                tmp_df['ymin'] = ymin
+                tmp_df['ymax'] = ymax
 
-        tmp_df.to_csv(txtfile_dir, sep= ' ', header= False, index = False)
+                tmp_df.to_csv(txtfile_dir, sep= ' ', header= False, index = False)
